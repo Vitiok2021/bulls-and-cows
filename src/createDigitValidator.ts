@@ -1,6 +1,7 @@
 export function createDigitValidator(base: number) {
   return (char: string) => {
-    console.log(base, char);
-    return false;
+    const lower = char.toLowerCase();
+    const parsed = parseInt(lower, base);
+    return !Number.isNaN(parsed);
   };
 }
