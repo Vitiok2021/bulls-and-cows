@@ -7,7 +7,9 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
     "prepare": "husky",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "deploy": "npm run build && gh-pages -d dist",
+    "build": "tsc && vite build"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
+    "gh-pages": "^6.3.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.10",
