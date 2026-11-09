@@ -1,0 +1,53 @@
+/* Загальний стиль сторінки */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  gap: 25px;
+}
+
+/* Назва гри (.game-title) */
+.game-title {
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+/* Кнопка Start (.btn-primary) */
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+.btn-primary:disabled {
+  background-color: #697883;
+
+}
+/* Випадаючі списки (.game-select, .game-systems) */
+.length-select, .game-systems {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #bdc3c7;
+  border-radius: 6px;
+  background-color: white;
+  outline: none;
+  margin-left: 10px;
+}
+
+.game-select:disabled {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+}
