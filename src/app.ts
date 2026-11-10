@@ -78,33 +78,47 @@ const errorDiv = createElement('div', '', 'error-message');
 userButton.addEventListener('click', () => {
   const inputEl = userInput as HTMLInputElement;
   const guess = inputEl.value;
+
   if (!isValidGuess(guess, activeLength, activeBase)) {
     errorDiv.textContent = 'Incorrect length or invalid characters';
     return;
   }
   errorDiv.textContent = '';
-  const result = evaluateGuess(currentSecret, inputEl.value);
+
+  const result = evaluateGuess(currentSecret, guess);
   history = [...history, { guess: guess, bulls: result.bulls, cows: result.cows }];
-  historyContainer.textContent = '';
-  for (const item of history) {
-    const recordText = `Attempt : ${item.guess} | Bulls: ${item.bulls}, Cows: ${item.cows}`;
-    const recordEl = createElement('p', recordText, 'history-record');
-    historyContainer.append(recordEl);
-  }
+
+  renderHistory(history);
   inputEl.value = '';
+
   if (result.bulls === activeLength) {
-    const winMessage = createElement('h2', 'You win!!!', 'win-message');
-    historyContainer.append(winMessage);
-    const timeTaken = Number(((Date.now() - startTime) / 1000).toFixed(1));
-    const attemptsCount = history.length;
-    winMessage.textContent = `You win!!! Attempts: ${attemptsCount}, Time: ${timeTaken}s`;
-    const guessBtn = userButton as HTMLButtonElement;
-    saveRecord(attemptsCount, timeTaken, activeLength, activeBase);
-    guessBtn.disabled = true;
-    inputEl.disabled = true;
+    handleWin(inputEl);
   }
 });
 
+function renderHistory(historyData: { guess: string; bulls: number; cows: number }[]) {
+  historyContainer.textContent = '';
+
+  for (const [index, item] of historyData.entries()) {
+    const recordText = `Attempt ${index + 1} [${item.guess}] | Bulls: ${item.bulls}, Cows: ${item.cows}`;
+    const recordEl = createElement('p', recordText, 'history-record');
+    historyContainer.append(recordEl);
+  }
+}
+function handleWin(inputEl: HTMLInputElement) {
+  const winMessage = createElement('h2', 'You win!!!', 'win-message');
+  historyContainer.append(winMessage);
+
+  const timeTaken = Number(((Date.now() - startTime) / 1000).toFixed(1));
+  const attemptsCount = history.length;
+
+  winMessage.textContent = `You win!!! Attempts: ${attemptsCount}, Time: ${timeTaken}s`;
+
+  saveRecord(attemptsCount, timeTaken, activeLength, activeBase);
+
+  (userButton as HTMLButtonElement).disabled = true;
+  inputEl.disabled = true;
+}
 const historyContainer = createElement('div', '', 'history-container');
 
 const resetButton = createElement('button', 'New Game', 'btn-secondary');
@@ -120,8 +134,6 @@ resetButton.addEventListener('click', () => {
   (lengthSelect as HTMLSelectElement).disabled = false;
   (systemSelect as HTMLSelectElement).disabled = false;
   (startButton as HTMLButtonElement).disabled = false;
-  (userButton as HTMLButtonElement).disabled = false;
-  inputEl.disabled = false;
 
   systemSelect.dispatchEvent(new Event('change'));
 });
