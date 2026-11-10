@@ -1,88 +1,52 @@
-Bulls and Cows Game - Design Documentation
-1. Data Structures and Algorithms
-The application manages game state immutably using standard TypeScript/JavaScript data structures tailored for functional programming principles.
+# Документация проекта — Bulls and Cows
 
-Game State & Configuration:
+## 1. Структуры данных и алгоритмы
 
-activeLength (number): Stores the current digit length of the secret (ranging from 2 to 6).
+Приложение управляет состоянием игры иммутабельно, используя стандартные структуры данных JavaScript/TypeScript, подходящие для функционального программирования.
 
-activeBase (number): Stores the number base (2 for binary, 8 for octal, 10 for decimal, 16 for hexadecimal).
+**Структуры данных для состояния и истории:**
+* **Текущий секрет (currentSecret):** Хранится как `string` (строка). Это критически важно для предотвращения потери данных (например, ведущих нулей вроде "01"), что было бы неизбежно при использовании типа `number`.
+* **История попыток (history):** Хранится как массив объектов (`Array<{ guess: string, bulls: number, cows: number }>`). Массив идеально подходит для сохранения хронологического порядка попыток. Состояние обновляется иммутабельно с помощью spread-оператора (`[...history, newAttempt]`), что исключает побочные эффекты.
+* **Таблица рекордов (records):** Массив объектов, сохраняемый в `localStorage`. Структура: `Array<{ attempts: number, time: number, length: number, base: number }>`. Массив сортируется сначала по количеству попыток (по возрастанию), затем по затраченному времени, после чего обрезается до 10 элементов для экономии памяти.
 
-currentSecret (string): Stores the generated secret code as a string to prevent precision loss and preserve leading zeros (e.g., "01").
+**Описание алгоритмов:**
+* **Алгоритм evaluateGuess(secret, guess):**
+Алгоритм за один или два прохода сравнивает две строки. Сначала он находит «Быков» (Bulls), сравнивая символы на одинаковых индексах (`secret[i] === guess[i]`). Затем он ищет «Коров» (Cows), проверяя, присутствует ли несовпавший символ из `guess` в оставшихся несовпавших символах `secret`. Для оптимизации поиска коров часто используются вспомогательные массивы частот или множества (Sets), чтобы избежать повторного учета одних и тех же цифр.
+* **Алгоритм countPossibleSecrets(length, base):**
+Алгоритм базируется на комбинаторике (размещение без повторений). Для расчета количества возможных уникальных комбинаций длины L из алфавита размером B (база) используется умножение доступных вариантов. Цикл (или рекурсия) перемножает числа от B до B - L + 1. Например, для длины 3 и базы 10: 10 * 9 * 8 = 720.
 
-startTime (number): Stores the timestamp (Date.now()) when the "Start" button is clicked, used for calculating total match duration.
+## 2. Анализ сложности (Big O)
 
-History & Leaderboard State:
+Ниже приведена оценка временной (Time) и пространственной (Space) сложности для основных функций:
 
-history (Array of objects): An immutable array tracking each user attempt.
+1. **generateSecret(length, base)**
+* **Time Complexity: O(L)**, где L — длина загаданного числа. В лучшем и среднем случае алгоритм делает L итераций для выбора уникальных случайных цифр.
+* **Space Complexity: O(L)** для хранения результирующей строки/массива уникальных символов.
 
-Structure: { guess: string, bulls: number, cows: number }
+2. **isValidGuess(guess, length, base)**
+* **Time Complexity: O(L)**, где L — длина введенной строки. Функция делает линейный проход по строке, чтобы убедиться, что все символы уникальны (например, через Set) и принадлежат допустимой системе счисления.
+* **Space Complexity: O(L)** на создание структуры Set для проверки уникальности символов.
 
-Updated immutably using the spread operator ([...history, newAttempt]).
+3. **evaluateGuess(secret, guess)**
+* **Time Complexity: O(L)**, где L — длина строки. Алгоритм выполняет линейный проход для подсчета быков и коров (без использования вложенных циклов по всей строке).
+* **Space Complexity: O(L)** на создание дополнительных структур (например, хэш-таблиц частот или отфильтрованных массивов) для трекинга несовпавших символов.
 
-records (Array of objects): Stored in localStorage under the key 'bulls-cows-records'.
+4. **countPossibleSecrets(length, base)**
+* **Time Complexity: O(L)**, где L — запрошенная длина. Цикл перемножения выполняется ровно L раз.
+* **Space Complexity: O(1)**, так как для хранения промежуточного результата вычислений используется только одна числовая переменная.
 
-Structure: { attempts: number, time: number, length: number, base: number }[]
+## 3. Принципы чистого кода (Clean Code)
 
-Sorted primarily by ascending attempts, and secondarily by ascending time. Trimmed strictly to top 10 entries.
+Проект строго следует принципам Clean Code, что отражено в конкретных модулях и архитектурных решениях:
 
-2. Big O Complexity Analysis
-Here is the time and space complexity analysis for the four core utility functions powering the application logic:
+* **Чистые функции (Pure Functions) и Иммутабельность:**
+Где применено: Функции `generateSecret` в `src/generateSecret.ts`, `evaluateGuess` в `src/evaluateGuess.ts` и `isValidGuess` в `src/isValidGuess.ts` зависят исключительно от переданных аргументов и всегда возвращают предсказуемый результат без мутации внешних переменных (side effects). Обновление истории `history` делается через копирование `history = [...history, result]`, а не через `push()`.
 
-generateSecret(length, base)
+* **Принцип единственной ответственности (Single Responsibility Principle - SRP):**
+Где применено: Логика манипуляций с DOM полностью изолирована в вспомогательных функциях (например, функция `createElement` в файле `src/dom.ts`). Логика вычислений и проверок вынесена в отдельные файлы тестов и утилит, из-за чего модуль интерфейса (`src/app.ts`) отвечает только за связывание данных с событиями браузера.
 
-Time Complexity: 
-O(L), where 
-L is the length of the secret. The algorithm iterates 
-L times to pick unique random digits according to the specified base.
+* **Осмысленные имена (Meaningful Naming):**
+Где применено: Имена переменных и функций четко описывают доменную область игры. Вместо коротких `l` и `b` используются `activeLength` и `activeBase`. Массивы названы `history` и `records`, а функция отрисовки интерфейса — `renderRecords` в `src/app.ts`.
 
-Space Complexity: 
-O(L) to store the resulting string/array of generated unique digits.
-
-isValidGuess(guess, length, base)
-
-Time Complexity: 
-O(L), where 
-L is the length of the guess string. The function checks string length and iterates through each character once to validate uniqueness and boundaries against the number base.
-
-Space Complexity: 
-O(1) as it only uses a fixed set of local variables and boolean flags during iteration.
-
-evaluateGuess(secret, guess)
-
-Time Complexity: 
-O(L), where 
-L is the length of the code. The algorithm performs a linear pass to count bulls (exact matches) and a secondary lookup/counting pass to evaluate cows (misplaced matches).
-
-Space Complexity: 
-O(L) to maintain frequency maps or tracking arrays for unmatched digits.
-
-saveRecord / leaderboard sorting
-
-Time Complexity: 
-O(NlogN), where 
-N is the number of saved records in localStorage (capped at 10 items, making 
-NlogN virtually 
-O(1) in practice). Sorting compares attempts and execution time.
-
-Space Complexity: 
-O(N) to parse, mutate, and re-serialize the records array for localStorage.
-
-3. Clean Code Principles & Application
-The project strictly adheres to Clean Code and functional programming paradigms, implemented across specific modules:
-
-Pure Functions & Immutability:
-
-Where applied: In core game logic modules (generateSecret.ts, evaluateGuess.ts, isValidGuess.ts). Functions depend solely on their input arguments, produce no side effects, and do not mutate external state. Game history state uses immutable array transformations (...history).
-
-Single Responsibility Principle (SRP):
-
-Where applied: DOM manipulation helpers are isolated in dom.ts, validation logic resides strictly in isValidGuess.ts, and leaderboard persistence logic is separated into dedicated storage functions.
-
-Meaningful Naming & Readability:
-
-Where applied: Variables and functions use descriptive domain-specific names (activeLength, activeBase, currentSecret, renderRecords), avoiding magic numbers or ambiguous abbreviations.
-
-Strict Type Safety:
-
-Where applied: Explicit TypeScript typing is enforced across all functions, event handlers, and data structures, strictly prohibiting the use of any types to comply with ESLint configuration rules.
+* **Строгая типизация и избегание "Magic Numbers":**
+Где применено: Везде прописаны интерфейсы и типы TypeScript (исключено использование any). В коде нет жестко зашитых ограничений — длины и базы передаются как аргументы функций, а словарь баз позволяет легко масштабировать логику без дублирования.

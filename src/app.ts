@@ -60,7 +60,7 @@ startButton.addEventListener('click', () => {
 
   currentSecret = generateSecret(activeLength, activeBase);
   startTime = Date.now();
-  console.log(currentSecret);
+
   length.disabled = true;
   system.disabled = true;
   const startBtnEl = startButton as HTMLButtonElement;
@@ -103,7 +103,6 @@ userButton.addEventListener('click', () => {
     guessBtn.disabled = true;
     inputEl.disabled = true;
   }
-  console.log(result);
 });
 
 const historyContainer = createElement('div', '', 'history-container');
